@@ -101,6 +101,7 @@ my-bot/
 | `intents` | string[] | Gateway intents to enable |
 | `clientId` | string | Discord application client ID |
 | `disabledCommands` | string[] | Commands to disable |
+| `perGuildSlash` | boolean | Register slash per-guild (instant) vs global (~1h). Default: `false` |
 
 ### Available Intents
 
@@ -108,6 +109,22 @@ my-bot/
 - `GuildMessages` - Read messages in servers
 - `MessageContent` - Read message content (required for commands)
 - `GuildMembers` - Access member list
+- `GuildModeration` - Ban/kick/timeout
+- `GuildEmojisAndStickers` - Custom emoji info
+- `GuildIntegrations` - Webhooks, integrations
+- `GuildWebhooks` - Webhook management
+- `GuildInvites` - Invite management
+- `GuildVoiceStates` - Voice channel state
+- `GuildPresences` - Member presence/status
+- `GuildMessageReactions` - Reaction events
+- `GuildMessageTyping` - Typing indicators
+- `DirectMessages` - DM support
+- `DirectMessageReactions` - DM reactions
+- `DirectMessageTyping` - DM typing
+- `GuildScheduledEvents` - Scheduled events
+- `AutoModerationConfiguration` - AutoMod config
+- `AutoModerationExecution` - AutoMod execution
+- `GuildMessagePolls` - Polls
 - `GuildVoiceStates` - Voice channel tracking
 - `DirectMessages` - DM support
 - `GuildPresences` - Presence/activity tracking
@@ -269,6 +286,12 @@ module.exports = {
   hooks: {
     bot_ready: async (payload, runtime) => {
       console.log(`Logged in as ${payload.user.tag}`);
+
+      // Register slash commands (auto-batched, supports perGuildSlash)
+      const { SlashCommandBuilder } = require('discord.js');
+      await runtime.registerSlashCommands(runtime.config.clientId, [
+        new SlashCommandBuilder().setName('ping').setDescription('Pong!')
+      ]);
     },
 
     message_received: async (payload, runtime) => {
@@ -1046,8 +1069,8 @@ module.exports = {
 
 | Command | Description |
 |---------|-------------|
-| `spiral run` | Start the bot |
-| `spiral run -R` | Start with auto-reload + REPL console |
+| `spiral run` | Start bot with REPL + auto-reload |
+| `spiral run --normal` | Start bot without REPL |
 | `spiral dev` | Start with auto-reload on file changes |
 | `spiral web` | Open plugin manager UI |
 | `spiral test` | Test all plugins for errors |
@@ -1106,10 +1129,10 @@ spm uses a shared commands module (`spm/lib/commands.js`) that both the CLI and 
 
 ## REPL Console
 
-Start with `spiral run -R` for an interactive console:
+Start with `spiral run` for an interactive console:
 
 ```
-$ spiral run -R
+$ spiral run
 [runtime] Starting Spiralcord v2.2.7
 [runtime] Ready as MyBot#1234 | 5 servers
 [repl] 2 plugin command(s) registered: .greet, .stats

@@ -85,7 +85,7 @@ Watches `plugins/` and `src/` for changes and auto-reloads.
 ### Interactive REPL
 
 ```bash
-spiral run -R
+spiral run
 ```
 
 Starts the bot with auto-reload + interactive console:

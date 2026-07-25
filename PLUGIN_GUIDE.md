@@ -57,6 +57,8 @@ module.exports = {
     },
     bot_ready: async (payload, runtime) => {
       // payload.client, payload.config
+      // Register slash commands (auto-batched, supports perGuildSlash):
+      // await runtime.registerSlashCommands(runtime.config.clientId, commands);
     },
     interaction_received: async (payload, runtime) => {
       // payload.interaction (buttons, select menus, modals)
@@ -216,7 +218,7 @@ runtime.emitHook('event', payload)      // Emit custom hook
 
 ## REPL Commands
 
-Plugins can register commands for the interactive REPL (`spiral run -R`):
+Plugins can register commands for the interactive REPL (`spiral run`):
 
 ```js
 module.exports = {

@@ -81,8 +81,24 @@ class SpiralRuntime {
 | `runtime.getAllCommands()` | Get all commands as Map |
 | `runtime.getPluginConfig(name)` | Get plugin's config.json |
 | `runtime.getPluginAPI(name)` | Get plugin's exported API |
+| `runtime.registerSlashCommands(clientId, commands, opts)` | Register slash commands with auto-batching (100 per request) |
 | `runtime.restart()` | Restart without killing process |
 | `runtime.stop()` | Shutdown bot completely |
+
+### Slash Command Registration
+
+Use `runtime.registerSlashCommands()` to register slash commands with automatic batching (100 per request):
+
+```javascript
+exports.hooks = {
+  bot_ready: async (payload, runtime) => {
+    const { SlashCommandBuilder } = require('discord.js');
+    await runtime.registerSlashCommands(runtime.config.clientId, [
+      new SlashCommandBuilder().setName('ping').setDescription('Pong!')
+    ]);
+  }
+};
+```
 
 ---
 
@@ -345,9 +361,20 @@ This creates:
   "prefix": "!",
   "intents": ["Guilds", "GuildMessages", "MessageContent"],
   "clientId": "123456789",
-  "disabledCommands": []
+  "disabledCommands": [],
+  "perGuildSlash": false
 }
 ```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Bot display name |
+| `token` | string | Discord bot token |
+| `prefix` | string | Command prefix |
+| `intents` | string[] | Gateway intents to enable |
+| `clientId` | string | Discord application client ID |
+| `disabledCommands` | string[] | Commands to disable |
+| `perGuildSlash` | boolean | Register slash commands per-guild (instant) vs global (~1 hour). Default: `false` |
 
 ### Plugin Config
 
@@ -421,12 +448,12 @@ const data = myPlugin.getUserData(userId);
 
 ## REPL Console
 
-Spiralcord includes an interactive REPL console via `spiral run -R`.
+Spiralcord includes an interactive REPL console via `spiral run`.
 
 ### Starting
 
 ```bash
-spiral run -R
+spiral run
 ```
 
 This starts the bot with:
@@ -500,7 +527,7 @@ context.user       // Bot's user object
 ### REPL Example
 
 ```
-$ spiral run -R
+$ spiral run
 [runtime] Starting Spiralcord v2.3.0
 [runtime] Ready as MyBot#1234 | 5 servers
 [repl] 2 plugin command(s) registered: .greet, .stats
@@ -642,8 +669,8 @@ END
 | Command | Description |
 |---------|-------------|
 | `spiral install <repo>` | Clone bot from GitHub |
-| `spiral run` | Start bot |
-| `spiral run -R` | Start with auto-reload + REPL |
+| `spiral run` | Start bot with REPL + auto-reload |
+| `spiral run --normal` | Start bot without REPL |
 | `spiral dev` | Start with auto-reload |
 | `spiral web` | Start web manager |
 | `spiral test` | Test all plugins |
@@ -740,7 +767,7 @@ COMMAND hello "Say hello"
 
 ### chokidar not found
 
-`spiral dev` and `spiral run -R` require chokidar in your project:
+`spiral dev` and `spiral run` require chokidar in your project:
 
 ```bash
 npm install chokidar
