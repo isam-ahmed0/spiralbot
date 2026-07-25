@@ -1,0 +1,14 @@
+{
+  "name": "spiralbot",
+  "version": "1.0.0",
+  "description": "Spiral Bot - Ready to run",
+  "private": true,
+  "scripts": {
+    "start": "spiral run",
+    "web": "spiral web"
+  },
+  "dependencies": {
+    "spiralcord": "latest",
+    "discord.js": "latest"
+  }
+}

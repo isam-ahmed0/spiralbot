@@ -1,0 +1,7 @@
+{
+  "name": "My Spiral Bot",
+  "token": "DISCORD_TOKEN",
+  "prefix": "!",
+  "intents": ["Guilds", "GuildMessages", "MessageContent"],
+  "disabledCommands": []
+}

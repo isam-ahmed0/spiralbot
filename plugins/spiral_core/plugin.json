@@ -1,0 +1,17 @@
+{
+  "name": "spiral_core",
+  "version": "1.0.0",
+  "description": "Core commands - help, ping, info, server, user, purge, kick, ban",
+  "builtin": true,
+  "collision_policy": "error",
+  "commands": {
+    "help": { "description": "Show all available commands", "slash": true },
+    "ping": { "description": "Check bot latency", "slash": true },
+    "info": { "description": "Show bot information", "slash": true },
+    "server": { "description": "Show server information", "slash": true },
+    "user": { "description": "Show user information", "slash": true, "usage": "[user]" },
+    "purge": { "description": "Delete multiple messages", "slash": true, "usage": "<amount>" },
+    "kick": { "description": "Kick a user", "slash": true, "usage": "<user> [reason]" },
+    "ban": { "description": "Ban a user", "slash": true, "usage": "<user> [reason]" }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "spiral_slash_commands",
+  "version": "1.0.0",
+  "description": "Handles slash command registration and interaction routing",
+  "builtin": true,
+  "priority": 10,
+  "collision_policy": "error",
+  "hooks": ["bot_ready", "interaction_received"]
+}

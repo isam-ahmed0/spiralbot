@@ -1,0 +1,13 @@
+{
+  "name": "spiral_moderation",
+  "version": "1.0.0",
+  "description": "Moderation commands - mute, unmute, warn, warnings",
+  "builtin": true,
+  "collision_policy": "error",
+  "commands": {
+    "mute": { "description": "Mute a user", "slash": true, "usage": "<user> [minutes]" },
+    "unmute": { "description": "Unmute a user", "slash": true, "usage": "<user>" },
+    "warn": { "description": "Warn a user", "slash": true, "usage": "<user> [reason]" },
+    "warnings": { "description": "View warnings for a user", "slash": true, "usage": "[user]" }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Slash Commands Plugin Config",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "autoRegister": {
+      "type": "boolean",
+      "default": true,
+      "description": "Auto-register slash commands on bot ready"
+    },
+    "clientId": {
+      "type": "string",
+      "default": "",
+      "description": "Discord application client ID (auto-detected if empty)"
+    }
+  }
+}

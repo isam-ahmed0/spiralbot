@@ -1,0 +1,5 @@
+{
+  "enabled": true,
+  "maxCount": 1000,
+  "minCount": -1000
+}

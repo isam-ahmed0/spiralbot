@@ -1,0 +1,6 @@
+{
+  "name": "spiral_greetings",
+  "version": "1.0.0",
+  "description": "Simple greeting commands using DSL - hello, goodbye, welcome",
+  "collision_policy": "last-wins"
+}

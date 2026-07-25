@@ -1,0 +1,9 @@
+{
+  "enabled": true,
+  "apiKey": "",
+  "model": "gpt-3.5-turbo",
+  "systemPrompt": "You are a helpful Discord bot. Be concise.",
+  "trigger": "!ask",
+  "maxHistory": 10,
+  "cooldown": 5
+}

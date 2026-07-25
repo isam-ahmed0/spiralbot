@@ -1,0 +1,14 @@
+{
+  "name": "spiral_economy",
+  "version": "1.0.0",
+  "description": "Economy system - balance, daily, work, pay, leaderboard",
+  "builtin": true,
+  "collision_policy": "error",
+  "commands": {
+    "balance": { "description": "Check your balance", "slash": true },
+    "daily": { "description": "Claim daily reward", "slash": true },
+    "work": { "description": "Work to earn money", "slash": true },
+    "pay": { "description": "Pay another user", "slash": true, "usage": "<user> <amount>" },
+    "leaderboard": { "description": "View richest users", "slash": true }
+  }
+}
