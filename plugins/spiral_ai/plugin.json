@@ -1,7 +1,0 @@
-{
-  "name": "spiral_ai",
-  "version": "1.0.0",
-  "description": "AI chat plugin with conversation memory - requires OpenAI API key",
-  "hooks": ["message_received"],
-  "collision_policy": "error"
-}

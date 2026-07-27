@@ -1,14 +1,7 @@
 {
   "name": "spiral_fun",
   "version": "1.0.0",
-  "description": "Fun commands - 8ball, coinflip, dice, reverse, rate",
-  "builtin": true,
-  "collision_policy": "error",
-  "commands": {
-    "8ball": { "description": "Ask the magic 8-ball", "slash": true, "usage": "<question>" },
-    "coinflip": { "description": "Flip a coin", "slash": true },
-    "dice": { "description": "Roll dice", "slash": true, "usage": "[sides]" },
-    "reverse": { "description": "Reverse text", "slash": true, "usage": "<text>" },
-    "rate": { "description": "Rate something", "slash": true, "usage": "<thing>" }
-  }
+  "description": "Fun commands (DSL demo)",
+  "author": "SpiralCord",
+  "collision_policy": "last-wins"
 }

@@ -1,14 +1,15 @@
 {
-  "name": "spiralbot",
+  "name": "spiralbot-example",
   "version": "1.0.0",
-  "description": "Spiral Bot - Ready to run",
+  "description": "Example bot showcasing SpiralCord",
   "private": true,
   "scripts": {
     "start": "spiral run",
-    "web": "spiral web"
+    "dev": "spiral dev",
+    "test": "spiral test"
   },
   "dependencies": {
-    "spiralcord": "latest",
-    "discord.js": "latest"
+    "spiral-core": "latest",
+    "chokidar": "^4.0.0"
   }
 }

@@ -1,0 +1,81 @@
+# Economy plugin - SpiralScript with both slash and prefix commands
+# Demonstrates: config system, database, SLASH_COMMAND + COMMAND together
+
+# --- Slash commands ---
+
+SLASH_COMMAND balance "Check your coin balance"
+  DB_GET user:balance
+  EMBED "#FFD700"
+  TITLE "Your Balance"
+  DESCRIPTION "{db_value} coins"
+  TIMESTAMP
+END
+
+SLASH_COMMAND daily "Claim your daily reward"
+  GET_CONFIG spiral_economy dailyReward
+  DB_GET user:last_daily
+  IF $db_value == "0"
+    DB_ADD user:balance $config_value
+    DB_SET user:last_daily $timestamp
+    EMBED "#00FF00"
+    TITLE "Daily Claimed!"
+    DESCRIPTION "You received ${config_value} coins!"
+    TIMESTAMP
+  ELSE
+    SET $elapsed = $timestamp_ms - ($db_value * 1000)
+    IF $elapsed > 86400000
+      DB_ADD user:balance $config_value
+      DB_SET user:last_daily $timestamp
+      EMBED "#00FF00"
+      TITLE "Daily Claimed!"
+      DESCRIPTION "You received ${config_value} coins!"
+      TIMESTAMP
+    ELSE
+      EMBED "#FF0000"
+      TITLE "Already Claimed"
+      DESCRIPTION "Come back tomorrow!"
+    END
+  END
+END
+
+# --- Prefix commands ---
+
+COMMAND balance "Check your coin balance (prefix)"
+  ALIASES bal
+  DB_GET user:balance
+  EMBED "#FFD700"
+  TITLE "Your Balance"
+  DESCRIPTION "{db_value} coins"
+  TIMESTAMP
+  REPLY_EMBED
+END
+
+COMMAND daily "Claim your daily reward (prefix)"
+  GET_CONFIG spiral_economy dailyReward
+  DB_GET user:last_daily
+  IF $db_value == "0"
+    DB_ADD user:balance $config_value
+    DB_SET user:last_daily $timestamp
+    EMBED "#00FF00"
+    TITLE "Daily Claimed!"
+    DESCRIPTION "You received ${config_value} coins!"
+    TIMESTAMP
+    REPLY_EMBED
+  ELSE
+    SET $elapsed = $timestamp_ms - ($db_value * 1000)
+    IF $elapsed > 86400000
+      DB_ADD user:balance $config_value
+      DB_SET user:last_daily $timestamp
+      EMBED "#00FF00"
+      TITLE "Daily Claimed!"
+      DESCRIPTION "You received ${config_value} coins!"
+      TIMESTAMP
+      REPLY_EMBED
+    ELSE
+      EMBED "#FF0000"
+      TITLE "Already Claimed"
+      DESCRIPTION "Come back tomorrow!"
+      REPLY_EMBED
+    END
+  END
+END

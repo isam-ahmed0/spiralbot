@@ -1,6 +1,7 @@
 {
   "name": "spiral_greetings",
   "version": "1.0.0",
-  "description": "Simple greeting commands using DSL - hello, goodbye, welcome",
+  "description": "Greeting commands and hooks demo",
+  "author": "SpiralCord",
   "collision_policy": "last-wins"
 }

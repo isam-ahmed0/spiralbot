@@ -1,6 +1,0 @@
-{
-  "name": "spiral_reactions",
-  "version": "1.0.0",
-  "description": "Fun reaction commands using DSL - hug, slap, highfive, etc.",
-  "collision_policy": "last-wins"
-}

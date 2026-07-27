@@ -1,7 +1,8 @@
 {
-  "name": "My Spiral Bot",
-  "token": "DISCORD_TOKEN",
+  "name": "SpiralCord Example Bot",
+  "token": "YOUR_BOT_TOKEN_HERE",
   "prefix": "!",
   "intents": ["Guilds", "GuildMessages", "MessageContent"],
+  "clientId": "YOUR_CLIENT_ID_HERE",
   "disabledCommands": []
 }

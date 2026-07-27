@@ -1,9 +1,0 @@
-{
-  "name": "spiral_presence",
-  "version": "1.0.0",
-  "description": "Manages bot status and activity - presence is plugin-based",
-  "builtin": true,
-  "priority": 100,
-  "collision_policy": "error",
-  "hooks": ["bot_ready"]
-}

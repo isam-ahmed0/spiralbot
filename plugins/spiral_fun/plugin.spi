@@ -1,0 +1,45 @@
+# Fun commands - SpiralScript slash commands
+
+SLASH_COMMAND 8ball "Ask the magic 8-ball"
+  OPTION string question "Your question" REQUIRED
+  RESPONSE_POOL
+    It is certain.
+    It is decidedly so.
+    Without a doubt.
+    Yes - definitely.
+    You may rely on it.
+    As I see it, yes.
+    Most likely.
+    Outlook good.
+    Yes.
+    Signs point to yes.
+    Reply hazy, try again.
+    Ask again later.
+    Better not tell you now.
+    Cannot predict now.
+    Concentrate and ask again.
+    Don't count on it.
+    My reply is no.
+    My sources say no.
+    Outlook not so good.
+    Very doubtful.
+  END
+END
+
+SLASH_COMMAND coinflip "Flip a coin"
+  RESPONSE_POOL
+    Heads!
+    Tails!
+  END
+END
+
+SLASH_COMMAND dice "Roll a six-sided die"
+  RESPONSE_POOL
+    You rolled a 1!
+    You rolled a 2!
+    You rolled a 3!
+    You rolled a 4!
+    You rolled a 5!
+    You rolled a 6!
+  END
+END

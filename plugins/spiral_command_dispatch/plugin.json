@@ -1,9 +1,0 @@
-{
-  "name": "spiral_command_dispatch",
-  "version": "1.0.0",
-  "description": "Handles prefix command parsing and dispatch to plugins",
-  "builtin": true,
-  "priority": 5,
-  "collision_policy": "error",
-  "hooks": ["message_received"]
-}

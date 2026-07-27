@@ -1,98 +1,140 @@
-# Spiralcord Plugin Development Guide
+# SpiralCord Plugin Development Guide
 
 ## Plugin Structure
 
 ```
-plugins/
-  my_plugin/
-    plugin.json          # Required - manifest
-    index.js             # JavaScript plugin (OR)
-    plugin.dsl           # DSL plugin (no code needed)
-    config.json          # Optional - user settings
-    config.schema.json   # Optional - schema for config
+plugins/my-plugin/
+  plugin.json           # Manifest (required)
+  index.js              # JavaScript plugin (OR)
+  plugin.spi            # SpiralScript plugin (no code needed)
+  config.json           # User overrides (optional)
+  config.schema.json    # Config defaults (optional)
 ```
 
-## plugin.json (Required)
+## plugin.json
 
 ```json
 {
   "name": "my_plugin",
   "version": "1.0.0",
-  "description": "Does something cool",
-  "author": "yourname",
-  "dependencies": {}
+  "description": "What it does",
+  "author": "you",
+  "collision_policy": "last-wins"
 }
 ```
 
-## JavaScript Plugin (index.js)
+Collision policies: `error` (refuse), `first-wins`, `last-wins` (default).
 
-```js
+---
+
+## JavaScript Plugins (index.js)
+
+```javascript
 module.exports = {
-  // Called when plugin loads
-  async init(config, runtime) {
-    console.log('Plugin loaded!');
+  init: async (config, runtime) => {
+    // Called once when plugin loads
   },
 
-  // Text commands (!command)
   commands: {
-    hello: {
-      description: 'Say hello',
+    ping: {
+      description: 'Check latency',
+      slash: true,           // Register as slash command
+      usage: '<arg>',        // Shown in help
+      aliases: ['p'],        // Alternative names
+      priority: 0,           // Higher wins on collision
       execute: async (message, args, runtime) => {
-        await message.reply('Hello!');
+        await message.reply('Pong!');
       }
     }
   },
 
-  // Trigger words (no prefix)
-  keywords: {
-    lol: async (message, args, runtime) => {
-      await message.reply('What\'s funny?');
-    }
-  },
-
-  // Event hooks
   hooks: {
+    bot_ready: async (payload, runtime) => {
+      // payload.client, payload.user, payload.config
+    },
     message_received: async (payload, runtime) => {
       // payload.message, payload.user, payload.guild
     },
-    bot_ready: async (payload, runtime) => {
-      // payload.client, payload.config
-      // Register slash commands (auto-batched, supports perGuildSlash):
-      // await runtime.registerSlashCommands(runtime.config.clientId, commands);
-    },
     interaction_received: async (payload, runtime) => {
-      // payload.interaction (buttons, select menus, modals)
-    },
-    presence_update: async (payload, runtime) => {},
-    voice_state_update: async (payload, runtime) => {},
-    reaction_add: async (payload, runtime) => {},
-    reaction_remove: async (payload, runtime) => {},
-    guild_joined: async (payload, runtime) => {},
-    guild_left: async (payload, runtime) => {}
+      // payload.interaction
+    }
   },
 
-  // REPL commands for interactive console
   repl: {
-    mycmd: {
-      description: 'My REPL command',
+    greet: {
+      description: 'Say hello in REPL',
       execute: async (args, context) => {
-        // context.runtime, context.client, context.db
-        // context.manager, context.config, context.user
-        return 'Hello from REPL!';
+        return `Hello ${context.user.username}!`;
       }
     }
   },
 
-  // API exposed to other plugins
   api: {
     getData: () => { return { key: 'value' }; }
   }
 };
 ```
 
-## DSL Plugin (plugin.dsl)
+### Slash Commands (JS)
 
-No JavaScript needed. For simple response commands:
+Register in `bot_ready` hook:
+
+```javascript
+const { SlashCommandBuilder } = require('discord.js');
+
+hooks: {
+  bot_ready: async (payload, runtime) => {
+    const commands = [
+      new SlashCommandBuilder()
+        .setName('ping')
+        .setDescription('Pong!')
+        .addStringOption(opt => opt
+          .setName('input')
+          .setDescription('Your input')
+          .setRequired(true)
+        )
+    ];
+    await runtime.registerSlashCommands(runtime.config.clientId, commands);
+  }
+}
+```
+
+### Using the Database
+
+```javascript
+execute: async (message, args, runtime) => {
+  const key = `visits.${message.author.id}`;
+  const visits = (runtime.db.get(key) || 0) + 1;
+  runtime.db.set(key, visits);
+  await message.reply(`Visits: ${visits}`);
+}
+```
+
+DB scopes: `user:key`, `guild:key`, `global:key`.
+
+### Sending Embeds
+
+```javascript
+const { EmbedBuilder } = require('discord.js');
+
+execute: async (message, args, runtime) => {
+  const embed = new EmbedBuilder()
+    .setColor('#FF0000')
+    .setTitle('Title')
+    .setDescription('Description')
+    .addFields({ name: 'Field', value: 'Value', inline: true })
+    .setTimestamp();
+  await message.reply({ embeds: [embed] });
+}
+```
+
+---
+
+## SpiralScript Plugins (.spi)
+
+No JavaScript needed. Write commands in a simple DSL.
+
+### Basic Syntax
 
 ```
 # Comments start with #
@@ -100,202 +142,200 @@ No JavaScript needed. For simple response commands:
 COMMAND hello "Say hello"
   ALIASES hi, hey
   COOLDOWN 3
-  REQUIRES_ARGS "Usage: !hello <name>"
-  REQUIRES_PERMISSION MANAGE_MESSAGES
   RESPONSE_POOL
     Hello {user.name}!
-    Hey there {user.name}!
-    Hi {user.name}, what's up?
+    Hey there!
   END
-END
-
-COMMAND embed "Show an embed"
-  EMBED "#00FF00"
-  TITLE "Cool Title"
-  DESCRIPTION "This is an embed!"
 END
 ```
 
-### DSL Keywords
+### Slash Commands
 
-| Keyword | Example | Description |
-|---------|---------|-------------|
-| `COMMAND` | `COMMAND name "description"` | Create a command |
-| `SLASH_COMMAND` | `SLASH_COMMAND name "description"` | Create a slash command |
-| `ALIASES` | `ALIASES hi, hey` | Alternative names |
-| `COOLDOWN` | `COOLDOWN 5` | Seconds between uses |
-| `REQUIRES_ARGS` | `REQUIRES_ARGS "msg"` | Error if no args |
-| `REQUIRES_PERMISSION` | `REQUIRES_PERMISSION BAN_MEMBERS` | Needs Discord permission |
+```
+SLASH_COMMAND greet "Greet someone"
+  OPTION user target "Who to greet" REQUIRED
+  OPTION string message "Your message" OPTIONAL
+  REPLY "Hello ${mention.first}!"
+END
+```
+
+### Option Types
+
+`user`, `string`, `integer`, `boolean`, `channel`, `role`, `number`, `attachment`
+
+### Keywords
+
+| Keyword | Syntax | Description |
+|---------|--------|-------------|
+| `COMMAND` | `COMMAND name "desc"` | Prefix command |
+| `SLASH_COMMAND` | `SLASH_COMMAND name "desc"` | Slash command |
+| `OPTION` | `OPTION type name "desc" REQUIRED` | Slash command option |
+| `ALIASES` | `ALIASES a, b` | Alternative names |
+| `COOLDOWN` | `COOLDOWN 5 ["msg"]` | Cooldown in seconds |
+| `REQUIRES_ARGS` | `REQUIRES_ARGS "error"` | Requires arguments |
+| `REQUIRES_PERMISSION` | `REQUIRES_PERMISSION BAN_MEMBERS` | Needs permission |
 | `RESPONSE` | `RESPONSE "text"` | Fixed response |
-| `RESPONSE_POOL` | Pool of random responses |
-| `EMBED` | `EMBED "#FF0000"` | Send colored embed |
+| `RESPONSE_POOL` | Pool block | Random response from list |
+| `EMBED` | `EMBED "#color"` | Embed response |
 | `TITLE` | `TITLE "text"` | Embed title |
 | `DESCRIPTION` | `DESCRIPTION "text"` | Embed description |
-| `BUTTON` | `BUTTON "label" STYLE Success ACTION command` | Add button |
-| `SELECT` | `SELECT "placeholder" OPTION "label" VALUE "val"` | Add select menu |
-| `DB_SET` | `DB_SET key value` | Set database value |
-| `DB_GET` | `DB_GET key` | Get database value |
-| `DB_ADD` | `DB_ADD key 10` | Add to number |
-| `DB_DELETE` | `DB_DELETE key` | Delete key |
-| `DB_RESPONSE` | `DB_RESPONSE "key"` | Use DB value in response |
-| `END` | `END` | Close block |
+| `FIELD` | `FIELD "name" "value" INLINE` | Embed field |
+| `THUMBNAIL` | `THUMBNAIL "url"` | Embed thumbnail |
+| `TIMESTAMP` | `TIMESTAMP` | Add timestamp |
+| `BUTTON` | `BUTTON "label" STYLE success ACTION id` | Add button |
+| `SELECT` | `SELECT "placeholder" OPTION "label" VALUE val` | Select menu |
+| `DB_GET` | `DB_GET user:key` | Read database |
+| `DB_SET` | `DB_SET user:key value` | Write database |
+| `DB_ADD` | `DB_ADD user:key 100` | Add to number |
+| `DB_SUB` | `DB_SUB user:key 50` | Subtract from number |
+| `DB_DELETE` | `DB_DELETE user:key` | Delete key |
+| `SET` | `SET $var = value` | Set variable |
+| `REPLY` | `REPLY "text"` | Reply to message |
+| `REPLY_EMBED` | `REPLY_EMBED` | Reply with embed |
+| `IF` | `IF $var == "value"` | Conditional |
+| `FOR` | `FOR $i FROM 1 TO 10` | Loop |
+| `ON_BUTTON` | `ON_BUTTON custom_id` | Handle button |
+| `ON_SELECT` | `ON_SELECT custom_id` | Handle select |
+| `ON_HOOK` | `ON_HOOK hook_name` | Listen to hook |
+| `SEND` | `SEND "text" TO channel:id` | Send to channel |
+| `GET_CONFIG` | `GET_CONFIG plugin key` | Read config |
+| `EMIT_HOOK` | `EMIT_HOOK "hook_name" args` | Emit custom hook |
+| `PLUGIN_API` | `PLUGIN_API plugin method args` | Call plugin API |
 
-### DSL Variables
+### Variables
 
-| Variable | Replaced With |
-|----------|---------------|
+| Variable | Value |
+|----------|-------|
 | `{user.id}` | User's Discord ID |
-| `{user.name}` | User's username |
-| `{channel.id}` | Channel ID |
+| `{user.name}` | Username |
+| `{user.mention}` | User mention string |
 | `{guild.id}` | Server ID |
 | `{guild.name}` | Server name |
+| `{guild.member_count}` | Member count |
+| `{channel.id}` | Channel ID |
+| `{channel.name}` | Channel name |
 | `{args}` | Command arguments |
-| `{db_value}` | Last DB_GET or DB_ADD result |
-| `{db_response}` | DB_RESPONSE value |
+| `{prefix}` | Bot prefix |
+| `{bot.name}` | Bot name |
+| `{bot.servers}` | Server count |
+| `{bot.uptime}` | Uptime string |
+| `{bot.latency}` | Latency in ms |
+| `{timestamp}` | Unix timestamp |
+| `{db_value}` | Last DB_GET result |
+| `{config_value}` | Last GET_CONFIG result |
+
+### Hooks in SpiralScript
+
+```
+ON_HOOK bot_ready
+  REPLY "Bot is online!"
+END
+
+ON_BUTTON my_button
+  REPLY "Button clicked!"
+END
+
+ON_SELECT my_select
+  REPLY "Selected: ${interaction.value}"
+END
+```
+
+---
 
 ## Config System
 
-### config.schema.json
+### config.schema.json (defaults)
 
 ```json
 {
   "type": "object",
   "properties": {
-    "greeting": {
-      "type": "string",
-      "default": "Hello!",
-      "description": "Greeting message"
-    },
-    "max_users": {
-      "type": "number",
-      "default": 10
-    }
+    "enabled": { "type": "boolean", "default": true },
+    "apiKey": { "type": "string", "default": "" },
+    "maxItems": { "type": "number", "default": 10 }
   }
 }
 ```
 
-### config.json
+### config.json (user overrides)
 
 ```json
 {
-  "greeting": "Welcome!",
-  "max_users": 5
+  "enabled": true,
+  "apiKey": "sk-abc123"
 }
 ```
 
-Access in code: `config.greeting` (user values override defaults)
+### Access in JavaScript
 
-## Discord.js Access
-
-Plugins have full access to discord.js:
-
-```js
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder } = require('discord.js');
-
-// In a command:
-const embed = new EmbedBuilder()
-  .setColor('#00FF00')
-  .setTitle('Title')
-  .setDescription('Description');
-
-await message.reply({ embeds: [embed] });
+```javascript
+const config = runtime.getPluginConfig('my_plugin');
+console.log(config.apiKey);
 ```
+
+### Access in SpiralScript
+
+```
+GET_CONFIG my_plugin apiKey
+REPLY "API key: ${config_value}"
+```
+
+---
 
 ## Runtime API
 
-Available in commands/hooks as `runtime`:
+| Property/Method | Description |
+|-----------------|-------------|
+| `runtime.client` | Discord.js client |
+| `runtime.config` | spiral.json config |
+| `runtime.db` | Built-in JSON database |
+| `runtime.getUptime()` | Milliseconds since start |
+| `runtime.getCommand(name)` | Get a command |
+| `runtime.getAllCommands()` | All commands as Map |
+| `runtime.getPluginConfig(name)` | Plugin's config |
+| `runtime.getPluginAPI(name)` | Plugin's exported API |
+| `runtime.registerSlashCommands(clientId, cmds)` | Register slash commands |
+| `runtime.emitHook(name, payload)` | Emit custom hook |
+| `runtime.restart()` | Restart bot |
+| `runtime.stop()` | Shutdown bot |
 
-```js
-runtime.client          // Discord.js client
-runtime.config          // spiral.json config
-runtime.db              // Built-in JSON database
-runtime.pluginManager   // Plugin manager instance
-runtime.getPluginConfig('plugin_name')  // Get another plugin's config
-runtime.getPluginAPI('plugin_name')     // Get another plugin's API
-runtime.getAllCommands()                 // List all commands
-runtime.emitHook('event', payload)      // Emit custom hook
-```
-
-## REPL Commands
-
-Plugins can register commands for the interactive REPL (`spiral run`):
-
-```js
-module.exports = {
-  repl: {
-    greet: {
-      description: 'Say hello',
-      execute: async (args, context) => {
-        // context.runtime    - SpiralRuntime instance
-        // context.client     - Discord.js client
-        // context.db         - Built-in database
-        // context.manager    - Plugin manager
-        // context.config     - spiral.json config
-        // context.user       - Bot's user object
-        return `Hello ${context.user.username}!`;
-      }
-    }
-  }
-};
-```
-
-Then in the REPL: `spiral> .greet`
-
-## Testing
-
-```bash
-spiral test
-```
-
-Checks: syntax errors, command conflicts, missing files, config issues.
-
-## Installing Plugins
-
-```bash
-spm install <source>         # Install from GitHub
-spm list                     # List installed
-spm enable <name>            # Enable plugin
-spm disable <name>           # Disable plugin
-spm create <name>            # Create new plugin
-spm test <name>              # Test a plugin
-spm remove <name>            # Remove a plugin
-spm info <name>              # Show plugin info
-spm update                   # Update all plugins
-```
+---
 
 ## Hook Events
 
-| Hook | When | Payload |
-|------|------|---------|
-| `bot_ready` | Bot logs in | `client, user, config` |
-| `message_received` | Message sent | `message, user, guild, channel` |
-| `interaction_received` | Button/modal/etc | `interaction, user, guild, channel` |
-| `presence_update` | Status change | `oldPresence, newPresence, user, guild` |
-| `voice_state_update` | Voice join/leave | `oldState, newState, user, guild` |
-| `reaction_add` | Reaction added | `reaction, user, message` |
-| `reaction_remove` | Reaction removed | `reaction, user, message` |
-| `guild_joined` | Bot joins server | `guild` |
-| `guild_left` | Bot leaves server | `guild` |
-| `bot_shutdown` | Bot stopping | `client` |
+| Hook | Payload | When |
+|------|---------|------|
+| `bot_ready` | `{ client, user, config }` | Bot connected |
+| `message_received` | `{ message, user, guild, channel }` | Message sent |
+| `interaction_received` | `{ interaction, user, guild, channel }` | Slash command used |
+| `presence_update` | `{ oldPresence, newPresence, user, guild }` | Status changes |
+| `guild_joined` | `{ guild }` | Bot joins server |
+| `guild_left` | `{ guild }` | Bot leaves server |
+| `voice_state_update` | `{ oldState, newState, user, guild }` | Voice change |
+| `reaction_add` | `{ reaction, user, message }` | Reaction added |
+| `reaction_remove` | `{ reaction, user, message }` | Reaction removed |
+| `bot_shutdown` | `{ client }` | Bot stopping |
 
-## Collision Policy
-
-If two plugins register the same command name:
-
-```json
-{
-  "collision_policy": "error"      // refuse to load
-  "collision_policy": "first-wins" // first plugin keeps command
-  "collision_policy": "last-wins"  // newest plugin overrides
-}
-```
-
-Priority system: higher `priority` number wins (default: 0).
+---
 
 ## Quick Start
 
-1. Create folder: `plugins/my_plugin/`
-2. Create `plugin.json` with name, version, description
-3. Create `index.js` with commands/hooks
-4. Run `spiral test` to check for errors
-5. Run `spiral run` to start bot
+```bash
+# 1. Create plugin folder
+mkdir -p plugins/my_plugin
+
+# 2. Create plugin.json
+echo '{"name":"my_plugin","version":"1.0.0","description":"My plugin"}' > plugins/my_plugin/plugin.json
+
+# 3a. JavaScript plugin
+echo 'module.exports={commands:{test:{description:"Test",execute:async(m)=>await m.reply("Works!")}}}' > plugins/my_plugin/index.js
+
+# 3b. OR SpiralScript plugin
+echo 'COMMAND test "Test"\n  RESPONSE "Works!"\nEND' > plugins/my_plugin/plugin.spi
+
+# 4. Test
+spiral test
+
+# 5. Run
+spiral run
+```

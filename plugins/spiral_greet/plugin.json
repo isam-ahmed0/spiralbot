@@ -1,9 +1,0 @@
-{
-  "name": "spiral_greet",
-  "version": "1.0.0",
-  "description": "A simple greeting plugin",
-  "keywords": {
-    "GREET": "Handles greeting commands"
-  },
-  "hooks": {}
-}
